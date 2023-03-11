@@ -8,7 +8,7 @@ unsigned char rx_buffer[RX_BUFFER_SIZE];
 volatile uint8_t rx_head = 0;
 volatile uint8_t rx_tail = 0;
 uint16_t checksum = 0;
-uint16_t crc_tx = 0;
+uint16_t crc_calc = 0;
 uint16_t crc_rx = 0;
 
 uint16_t ascii_tx_high = 0;
@@ -16,8 +16,8 @@ uint16_t ascii_tx_low = 0;
 
 uint16_t result[10] = {};
 
-int tx_hi = 0;
-int tx_lo = 0;
+int rx_hi = 0;
+int rx_lo = 0;
 
 extern UART_HandleTypeDef huart1;
 
@@ -68,35 +68,17 @@ void sendData(uint8_t *data)
 	//rx_pckt_verify(&adu_t, rx_buffer);
 }
 
-uint8_t ascii_to_hex(unsigned char c) {
-    uint8_t val;
-
-    if (c >= '0' && c <= '9') {
-        val = c - '0';
-    } else if (c >= 'a' && c <= 'f') {
-        val = c - 'a' + 10;
-    } else if (c >= 'A' && c <= 'F') {
-        val = c - 'A' + 10;
-    } else {
-        val = c; // default value for non-hex characters
-    }
-    return val;
-}
-
 bool rx_pckt_verify(struct modbus_adu *adu, unsigned char *rx_buffer)
 {
 	HAL_Delay(100); // wait before reading rx_buffer after callback
 
-	tx_hi = rx_buffer[(adu->read_length)+2];
-	tx_lo = (adu->window);
+	rx_hi = rx_buffer[(adu->read_length) + (adu->window) + 1];
+	rx_lo = rx_buffer[(adu->read_length) + (adu->window)];
 
-    ascii_tx_high = ascii_to_hex(rx_buffer[(adu->read_length) + (adu->window) + 1])<<8;
-    ascii_tx_low = ascii_to_hex(rx_buffer[(adu->read_length) + (adu->window)]);
+	crc_calc = crc16_2(rx_buffer, adu->read_length, adu->window);
+	crc_rx = rx_hi<<8|rx_lo;
 
-	crc_rx = crc16_2(rx_buffer, adu->read_length, adu->window);
-	crc_tx = ascii_tx_high|ascii_tx_low;
-
-	return crc_rx == crc_tx;
+	return crc_rx == crc_calc;
 }
 
 void rx_decode(struct modbus_adu *adu, unsigned char *rx_buffer)
@@ -107,7 +89,7 @@ void rx_decode(struct modbus_adu *adu, unsigned char *rx_buffer)
 
 	for (int i = 0; i < check; i++)
 	{
-		result[i] = (ascii_to_hex(rx_buffer[num_bytes + i + 1])<<8)|(ascii_to_hex(rx_buffer[num_bytes + i + 2]));
+		result[i] = ((rx_buffer[num_bytes + i + 1])<<8)|((rx_buffer[num_bytes + i + 2]));
 	}
 }
 

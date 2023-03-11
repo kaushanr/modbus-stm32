@@ -197,13 +197,13 @@ extern unsigned char rx_buffer[RX_BUFFER_SIZE];
 extern volatile uint8_t rx_head;
 extern volatile uint8_t rx_tail;
 extern uint16_t checksum;
-extern uint16_t crc_tx;
+extern uint16_t crc_calc;
 extern uint16_t crc_rx;
 extern uint16_t ascii_tx_high;
 extern uint16_t ascii_tx_low;
 
-extern int tx_hi;
-extern int tx_lo;
+extern int rx_hi;
+extern int rx_lo;
 
 extern uint16_t result[10];
 
@@ -230,7 +230,6 @@ struct modbus_adu{
 // Functions
 
 void ADU_read(struct modbus_adu *adu,uint16_t val1,uint16_t val2);
-uint8_t ascii_to_hex(unsigned char c);
 bool rx_pckt_verify(struct modbus_adu *adu, unsigned char *rx_buffer);
 void sendData(uint8_t *data);
 
