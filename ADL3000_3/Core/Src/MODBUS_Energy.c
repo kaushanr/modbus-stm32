@@ -2,6 +2,8 @@
 #include "main.h"
 #include "stdint.h"
 
+//extern struct modbus_adu adu_t;
+
 // UART Tx/Rx Buffers / vars
 
 unsigned char rx_buffer[RX_BUFFER_SIZE];
@@ -14,12 +16,14 @@ uint16_t crc_rx = 0;
 uint16_t ascii_tx_high = 0;
 uint16_t ascii_tx_low = 0;
 
+uint8_t TxData[8];
+
 uint16_t result[10] = {};
 
 int rx_hi = 0;
 int rx_lo = 0;
 
-extern UART_HandleTypeDef huart1;
+//extern UART_HandleTypeDef huart1;
 
 // Instantiating the structs
 
@@ -56,16 +60,13 @@ void ADU_read(struct modbus_adu *adu, uint16_t instruction, uint16_t byte_length
     }
 }
 
-void sendData(uint8_t *data)
+void sendData(UART_HandleTypeDef *huart, uint8_t *data)
 {
-	//ADU_read(&adu_t, VOLTAGE_OF_A_PHASE, BYTE_2);
 	rx_head = 0;
 	rx_tail = 0;
-    HAL_Delay(100);
-	HAL_GPIO_WritePin(TX_EN_GPIO_Port, TX_EN_Pin, GPIO_PIN_SET);
-	HAL_UART_Transmit(&huart1, data, 8, 1000);
-	HAL_GPIO_WritePin(TX_EN_GPIO_Port, TX_EN_Pin, GPIO_PIN_RESET);
-	//rx_pckt_verify(&adu_t, rx_buffer);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET); // tx enable
+	HAL_UART_Transmit(huart, data, 8, 1000);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET); // rx enable
 }
 
 bool rx_pckt_verify(struct modbus_adu *adu, unsigned char *rx_buffer)
@@ -74,7 +75,6 @@ bool rx_pckt_verify(struct modbus_adu *adu, unsigned char *rx_buffer)
 
 	rx_hi = rx_buffer[(adu->read_length) + (adu->window) + 1];
 	rx_lo = rx_buffer[(adu->read_length) + (adu->window)];
-
 	crc_calc = crc16_2(rx_buffer, adu->read_length, adu->window);
 	crc_rx = rx_hi<<8|rx_lo;
 
@@ -84,7 +84,6 @@ bool rx_pckt_verify(struct modbus_adu *adu, unsigned char *rx_buffer)
 void rx_decode(struct modbus_adu *adu, unsigned char *rx_buffer)
 {
 	int num_bytes = ((adu->read_length)+2);
-
 	int check = (adu->num_regs != BYTE_1)?(rx_buffer[num_bytes]/2):1;
 
 	for (int i = 0; i < check; i++)
@@ -93,7 +92,18 @@ void rx_decode(struct modbus_adu *adu, unsigned char *rx_buffer)
 	}
 }
 
-
+void adl_read(UART_HandleTypeDef *huart, struct modbus_adu *adu,uint16_t instruction, uint16_t byte_length)
+{
+	ADU_read(adu, instruction, byte_length);
+	sendData(huart,adu->frame);
+	memcpy(TxData, adu->frame, 8);
+	if (rx_pckt_verify(adu, rx_buffer))
+	{
+		rx_decode(adu, rx_buffer);
+	}else{
+		return;
+	}
+}
 
 
 

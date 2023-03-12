@@ -56,24 +56,8 @@ static void MX_USART1_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-//uint16_t result[10];
-uint8_t TxData[8];
 int flag = 1;
-
-
-
-//-------------------------------------------------------------------------------
-
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
-{
-	// return
-	//Data[0] = RxData[3]<<8 | RxData[4];
-	//Data[1] = RxData[5]<<8 | RxData[6];
-	//Data[2] = RxData[7]<<8 | RxData[8];
-	//Data[3] = RxData[9]<<8 | RxData[10];
-	//rx_pckt_verify(&adu_t, rx_buffer);
-}
-
+//--------------------------------------------------------- Kaushan
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	rx_buffer[rx_head] = huart->Instance->DR;
@@ -85,17 +69,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	}
   HAL_UART_Receive_IT (&huart1, &rx_buffer[rx_head], 1);
 }
-/*
-void sendData(uint8_t *data)
-{
-	rx_head = 0;
-	rx_tail = 0;
-    HAL_Delay(100);
-	HAL_GPIO_WritePin(TX_EN_GPIO_Port, TX_EN_Pin, GPIO_PIN_SET);
-	HAL_UART_Transmit(&huart1, data, 8, 1000);
-	HAL_GPIO_WritePin(TX_EN_GPIO_Port, TX_EN_Pin, GPIO_PIN_RESET);
-}*/
-//-------------------------------------------------------------------------------
+//----------------------------------------------------------
 
 
 /* USER CODE END 0 */
@@ -132,20 +106,9 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
 
-  //-------------------------------------------------------------------
-
-
-  struct modbus_adu adu_t = {};
-  ADU_read(&adu_t, VOLTAGE_OF_A_PHASE, BYTE_2);
-
-  memcpy(TxData, adu_t.frame, 8);
-
-  //HAL_UART_Receive_IT(&huart1, UART_rxBuff_2, sizeof(UART_rxBuff_2));
-  //rx_head = 0;
+  //------------------------------------------------------------------- Kaushan
+  struct modbus_adu adl3000_1 = {};
   HAL_UART_Receive_IT (&huart1, &rx_buffer[rx_head], 1);
-
-
-
   //-------------------------------------------------------------------
 
   /* USER CODE END 2 */
@@ -157,13 +120,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  // ------------------------------------------------------------------------
+  // ------------------------------------------------------------------------ Kaushan
 	  while (flag)
 	  {
-		  sendData(adu_t.frame);
-		  rx_pckt_verify(&adu_t, rx_buffer);
-		  rx_decode(&adu_t, rx_buffer);
-
+		  adl_read(&huart1, &adl3000_1, VOLTAGE_OF_A_PHASE, BYTE_2);
 		  flag = 0;
 	  }
 
@@ -172,14 +132,13 @@ int main(void)
   /* USER CODE END 3 */
 }
 
-
 /**
   * @brief System Clock Configuration
   * @retval None
   */
 void SystemClock_Config(void)
 {
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0}	;
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
@@ -261,7 +220,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD2_Pin|TX_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|GPIO_PIN_8, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -275,8 +234,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD2_Pin TX_EN_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin|TX_EN_Pin;
+  /*Configure GPIO pins : LD2_Pin PA8 */
+  GPIO_InitStruct.Pin = LD2_Pin|GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

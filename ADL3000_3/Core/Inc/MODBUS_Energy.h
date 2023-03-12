@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <main.h>
 
 #include "crc_adl3000.h"
 
@@ -191,6 +192,9 @@
 #define BYTE_6 0x03
 #define BYTE_8 0x04
 
+
+//extern struct modbus_adu adu_t;
+
 // UART Rx buffer params
 
 extern unsigned char rx_buffer[RX_BUFFER_SIZE];
@@ -206,6 +210,8 @@ extern int rx_hi;
 extern int rx_lo;
 
 extern uint16_t result[10];
+
+extern uint8_t TxData[8];
 
 
 // Modbus-RTU ADU - include PDU + CRC in a frame
@@ -231,9 +237,9 @@ struct modbus_adu{
 
 void ADU_read(struct modbus_adu *adu,uint16_t val1,uint16_t val2);
 bool rx_pckt_verify(struct modbus_adu *adu, unsigned char *rx_buffer);
-void sendData(uint8_t *data);
-
+void sendData(UART_HandleTypeDef *huart, uint8_t *data);
 void rx_decode(struct modbus_adu *adu, unsigned char *rx_buffer);
+void adl_read(UART_HandleTypeDef *huart, struct modbus_adu *adu,uint16_t instruction, uint16_t byte_length);
 
 
 #endif
