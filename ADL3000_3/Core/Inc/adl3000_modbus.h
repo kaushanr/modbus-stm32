@@ -6,8 +6,8 @@
 
 */ 
 
-#ifndef MODBUS_ENERGY_H_
-#define MODBUS_ENERGY_H_
+#ifndef ADL3000_MODBUS_H_
+#define ADL3000_MODBUS_H_
 
 #include <adl3000_crc.h>
 #include <stdint.h>
