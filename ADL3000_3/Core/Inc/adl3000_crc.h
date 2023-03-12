@@ -1,5 +1,5 @@
-#ifndef CRC_H_
-#define CRC_H_
+#ifndef ADL3000_CRC_H_
+#define ADL3000_CRC_H_
 
 #include <adl3000_modbus.h>
 #include "stdint.h"
