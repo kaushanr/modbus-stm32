@@ -9,13 +9,13 @@
 #ifndef MODBUS_ENERGY_H_
 #define MODBUS_ENERGY_H_
 
+#include <adl3000_crc.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include <main.h>
 
-#include "crc_adl3000.h"
 
 // Modbus ADU Params 
 

@@ -1,5 +1,4 @@
-#include "crc_adl3000.h"
-
+#include <adl3000_crc.h>
 #include "stdint.h"
 
 /* Table of CRC values for high–order byte */

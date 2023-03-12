@@ -1,7 +1,7 @@
 #ifndef CRC_H_
 #define CRC_H_
 
-#include "MODBUS_Energy.h"
+#include <adl3000_modbus.h>
 #include "stdint.h"
 
 uint16_t crc16_1(uint8_t *buffer, uint16_t buffer_length);

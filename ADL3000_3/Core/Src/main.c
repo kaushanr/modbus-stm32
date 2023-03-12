@@ -17,12 +17,12 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+#include <adl3000_crc.h>
+#include <adl3000_modbus.h>
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "crc_adl3000.h"
-#include "MODBUS_Energy.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
