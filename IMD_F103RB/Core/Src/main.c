@@ -18,14 +18,16 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+
 /* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-#include "adl3000_crc.h"
-#include "adl3000_modbus.h"
-/* USER CODE END Includes */
+#include "imd_crc.h"
+#include "imd_crc.h"
+#include "imd_modbus.h"
+/* USER COSER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -56,7 +58,7 @@ static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN 0 */
 uint16_t voltage = 0;
 int flag = 1;
-//--------------------------------------------------------- Kaushan
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	rx_buffer[rx_head] = huart->Instance->DR;
@@ -68,9 +70,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	}
   HAL_UART_Receive_IT (&huart1, &rx_buffer[rx_head], 1);
 }
-//----------------------------------------------------------
-
-
 /* USER CODE END 0 */
 
 /**
@@ -104,16 +103,10 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
-
-  //------------------------------------------------------------------- Kaushan
-  struct modbus_adu adl3000_1 = {};
-
-  ADU_read(&adl3000_1,VOLTAGE_OF_A_PHASE,BYTE_2);
-  //sendData(&huart1,adl3000_1.frame);
-  memcpy(TxData, adl3000_1.frame, 8);
+  struct modbus_adu_imd imd_1 = {};
+  imd_1.slave_addr = 0x01;
 
   HAL_UART_Receive_IT (&huart1, &rx_buffer[rx_head], 1);
-  //-------------------------------------------------------------------
 
   /* USER CODE END 2 */
 
@@ -122,19 +115,29 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+	  while (flag)
+	  	  	  {
+		  	  	  imd_write(&huart1, &imd_1, INSULATION_MONITORING_CONTROL, BYTE_2,TURN_ON);
+		  	  	  HAL_Delay(500);
+	  	  		  imd_read(&huart1, &imd_1, IO_STATUS, BYTE_2);
+	  	  		  HAL_Delay(2000);
+	  	  		  imd_read(&huart1, &imd_1, BUS_VOLTAGE, BYTE_2);
+	  	  		  voltage = result[0];
+	  	  		  HAL_Delay(2000);
+	  	  		  imd_read(&huart1, &imd_1, POSITIVE_TO_GROUND_OHMS, BYTE_2);
+				  voltage = result[0];
+				  HAL_Delay(2000);
+				  imd_read(&huart1, &imd_1, NEGATIVE_TO_GROUND_OHMS, BYTE_2);
+				  voltage = result[0];
+				  HAL_Delay(2000);
+				  imd_read(&huart1, &imd_1, EV_SIDE_VOLTAGE, BYTE_2);
+				  voltage = result[0];
+				  HAL_Delay(2000);
+	  	  		  flag = 0;
+	  	  	  }
+	  	  imd_write(&huart1, &imd_1, INSULATION_MONITORING_CONTROL, BYTE_2,TURN_OFF);
 
     /* USER CODE BEGIN 3 */
-  // ------------------------------------------------------------------------ Kaushan
-	  while (flag)
-	  {
-		  sendData(&huart1,adl3000_1.frame);
-		  rx_pckt_verify(&adl3000_1, rx_buffer);
-		  //adl_read(&huart1, &adl3000_1, VOLTAGE_OF_A_PHASE, BYTE_2);
-		  //voltage = result[0];
-		  flag = 0;
-	  }
-
-  // ------------------------------------------------------------------------
   }
   /* USER CODE END 3 */
 }
